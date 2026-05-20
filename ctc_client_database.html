@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CTC | Client Database</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --green: #2d4739;
+    --green-light: #3a5c49;
+    --green-pale: #e8f0eb;
+    --orange: #d4a373;
+    --orange-light: #f0d9be;
+    --cream: #fefae0;
+    --cream-dark: #f5f0cc;
+    --text: #1a2e24;
+    --text-muted: #6b8577;
+    --border: #c8d8ce;
+    --white: #ffffff;
+    --red: #c0392b;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--green);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  /* ── Header ── */
+  .app-header {
+    background: var(--green);
+    padding: 18px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-header .logo {
+    font-family: 'DM Serif Display', serif;
+    color: var(--cream);
+    font-size: 20px;
+    letter-spacing: 0.5px;
+  }
+  .app-header .logo span { color: var(--orange); }
+  .header-sub { color: var(--orange-light); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
+
+  /* ── Main shell ── */
+  .app-body {
+    background: var(--cream);
+    border-radius: 22px 22px 0 0;
+    min-height: calc(100vh - 70px);
+    padding: 0 0 80px;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    background: var(--cream);
+    border-bottom: 2px solid var(--border);
+    padding: 0 16px;
+    position: sticky;
+    top: 70px;
+    z-index: 99;
+    border-radius: 22px 22px 0 0;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 14px 4px 12px;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* ── Section ── */
+  .section { display: none; padding: 16px; }
+  .section.active { display: block; }
+
+  /* ── Search + Add bar ── */
+  .top-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+  .search-wrap { flex: 1; position: relative; }
+  .search-wrap input {
+    width: 100%;
+    padding: 12px 14px 12px 38px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    background: var(--white);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--green); }
+  .search-icon {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+  .btn-add {
+    background: var(--green);
+    color: var(--cream);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0 18px;
+    font-size: 22px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    transition: background 0.2s;
+  }
+  .btn-add:active { background: var(--green-light); }
+
+  /* ── Client cards ── */
+  .client-list { display: flex; flex-direction: column; gap: 10px; }
+  .client-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 4px rgba(45,71,57,0.08);
+  }
+  .client-card:active { border-color: var(--green); background: var(--green-pale); }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .card-names { flex: 1; }
+  .dog-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--green);
+    line-height: 1.1;
+  }
+  .owner-name { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .tier-badge {
+    background: var(--green-pale);
+    color: var(--green);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+  }
+  .tier-badge.solo { background: var(--orange-light); color: #7a4f1a; }
+  .tier-badge.duo { background: #e0eaff; color: #2a4080; }
+  .card-footer { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+  .card-tag {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text-muted);
+  }
+  .card-tag .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .dot.active { background: #2ecc71; }
+  .dot.inactive { background: #e74c3c; }
+  .dot.pending { background: var(--orange); }
+
+  /* ── Detail / Form modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20,40,28,0.6);
+    z-index: 200;
+    align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--cream);
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 22px 22px 0 0;
+    overflow-y: auto;
+    padding: 0 0 40px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    margin: 12px auto 0;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px 14px;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--cream);
+    z-index: 10;
+  }
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--green);
+  }
+  .modal-close {
+    width: 32px; height: 32px;
+    border: none; background: var(--green-pale);
+    border-radius: 50%;
+    font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--green);
+  }
+
+  /* ── Form sections ── */
+  .form-body { padding: 16px 20px; }
+  .form-section {
+    margin-bottom: 24px;
+  }
+  .form-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--orange-light);
+  }
+  .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .form-group { flex: 1; }
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    background: var(--white);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus { border-color: var(--green); }
+  .form-group textarea { resize: vertical; min-height: 70px; }
+
+  .checkbox-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+  }
+  .checkbox-row input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--green);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .checkbox-row label {
+    font-size: 14px; color: var(--text);
+    cursor: pointer;
+  }
+
+  /* Pickup/dropoff grid */
+  .pickup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .pickup-card {
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+  .pickup-card .pday {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .pickup-card input,
+  .pickup-card select {
+    width: 100%;
+    padding: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    outline: none;
+    margin-bottom: 6px;
+    -webkit-appearance: none;
+  }
+  .pickup-card input:last-child,
+  .pickup-card select:last-child { margin-bottom: 0; }
+
+  /* Save button */
+  .btn-save {
+    width: 100%;
+    padding: 15px;
+    background: var(--green);
+    color: var(--cream);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-save:active { background: var(--green-light); }
+  .btn-delete {
+    width: 100%;
+    padding: 13px;
+    background: none;
+    color: var(--red);
+    border: 2px solid var(--red);
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+  }
+
+  /* ── Today's run tab ── */
+  .run-date {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+  .run-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+  .run-day-picker {
+    display: flex; gap: 8px; margin-bottom: 18px; overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .run-day-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    background: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .run-day-btn.active {
+    background: var(--green);
+    color: var(--cream);
+    border-color: var(--green);
+  }
+
+  .run-list { display: flex; flex-direction: column; gap: 8px; }
+  .run-item {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(45,71,57,0.07);
+  }
+  .run-order {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--green-pale);
+    color: var(--green);
+    font-weight: 700;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .run-info { flex: 1; }
+  .run-dog { font-weight: 600; font-size: 14px; color: var(--text); }
+  .run-detail { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .run-check {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .run-check.checked {
+    background: #2ecc71;
+    border-color: #2ecc71;
+    color: white;
+  }
+
+  /* ── Stats ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(45,71,57,0.08);
+  }
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--green);
+    line-height: 1;
+  }
+  .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.7px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── View detail ── */
+  .detail-section {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .detail-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 12px;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--green-pale);
+    gap: 12px;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+  .detail-val { font-size: 14px; color: var(--text); font-weight: 500; text-align: right; }
+  .detail-val.note { text-align: left; font-size: 13px; font-weight: 400; }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .qa-btn {
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--border);
+    background: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .qa-btn:active { background: var(--green-pale); }
+
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <div class="logo">Concrete<span>to</span>Creek</div>
+    <div class="header-sub">Pack Manager</div>
+  </div>
+  <div style="color:var(--cream); font-size:22px;">🐾</div>
+</div>
+
+<div class="app-body">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('clients')">Clients</button>
+    <button class="tab-btn" onclick="switchTab('today')">Today's Run</button>
+    <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
+  </div>
+  <!-- Sync bar -->
+  <div id="sync-bar" style="display:none;background:var(--green);color:var(--cream);text-align:center;font-size:13px;padding:8px 16px;font-family:DM Sans,sans-serif;"></div>
+  <!-- Toast -->
+  <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:var(--cream);padding:10px 20px;border-radius:20px;font-size:13px;font-family:DM Sans,sans-serif;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none;white-space:nowrap;"></div>
+
+
+  <!-- ═══ CLIENTS TAB ═══ -->
+  <div class="section active" id="tab-clients">
+    <div class="top-bar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search dog or owner…" oninput="renderClients()">
+      </div>
+      <button class="btn-add" onclick="openNewClient()">+</button>
+    </div>
+    <div class="client-list" id="client-list"></div>
+  </div>
+
+  <!-- ═══ TODAY'S RUN TAB ═══ -->
+  <div class="section" id="tab-today">
+    <div class="run-date" id="run-date-label"></div>
+    <div class="run-sub">Pickup order for today</div>
+    <div class="run-day-picker" id="day-picker"></div>
+    <div class="run-list" id="run-list"></div>
+  </div>
+
+  <!-- ═══ STATS TAB ═══ -->
+  <div class="section" id="tab-stats">
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="detail-section">
+      <div class="detail-section-title">Tier Breakdown</div>
+      <div id="tier-breakdown"></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Upcoming Renewals</div>
+      <div id="renewals-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ ADD / EDIT MODAL ═══ -->
+<div class="modal-overlay" id="form-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="form-modal-title">New Client</div>
+      <button class="modal-close" onclick="closeModal('form-modal')">✕</button>
+    </div>
+    <div class="form-body">
+
+      <!-- DOG INFO -->
+      <div class="form-section">
+        <div class="form-section-title">🐕 Dog Info</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dog Name *</label>
+            <input type="text" id="f-dog-name" placeholder="e.g. Beau">
+          </div>
+          <div class="form-group">
+            <label>Breed</label>
+            <input type="text" id="f-breed" placeholder="e.g. Lab mix">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Age</label>
+            <input type="text" id="f-age" placeholder="e.g. 3 years">
+          </div>
+          <div class="form-group">
+            <label>Sex</label>
+            <select id="f-sex">
+              <option value="">—</option>
+              <option>Male (intact)</option>
+              <option>Male (neutered)</option>
+              <option>Female (intact)</option>
+              <option>Female (spayed)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Size</label>
+            <select id="f-size">
+              <option value="">—</option>
+              <option>Small (under 25 lbs)</option>
+              <option>Medium (25–60 lbs)</option>
+              <option>Large (60+ lbs)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Color / Markings</label>
+            <input type="text" id="f-color" placeholder="e.g. Black, white chest">
+          </div>
+        </div>
+      </div>
+
+      <!-- OWNER INFO -->
+      <div class="form-section">
+        <div class="form-section-title">👤 Owner Info</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Owner Name *</label>
+            <input type="text" id="f-owner" placeholder="Full name">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="f-phone" placeholder="(347) 555-0000">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="f-email" placeholder="name@email.com">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Emergency Contact</label>
+            <input type="text" id="f-emerg-name" placeholder="Name & relation">
+          </div>
+          <div class="form-group">
+            <label>Emergency Phone</label>
+            <input type="tel" id="f-emerg-phone" placeholder="(347) 555-0000">
+          </div>
+        </div>
+      </div>
+
+      <!-- PICKUP / DROPOFF -->
+      <div class="form-section">
+        <div class="form-section-title">📍 Pickup & Dropoff</div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Home Address</label>
+          <input type="text" id="f-address" placeholder="123 4th Ave, Brooklyn, NY">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Pickup Instructions</label>
+            <textarea id="f-pickup-note" placeholder="Buzzer #2B, key under mat, dog is in crate…"></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dropoff Instructions</label>
+            <textarea id="f-dropoff-note" placeholder="Leave in backyard, lock gate, text when done…"></textarea>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Days (check all that apply)</label>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;">
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;"><input type="checkbox" id="day-mon" value="Mon"> Mon</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;"><input type="checkbox" id="day-tue" value="Tue"> Tue</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;"><input type="checkbox" id="day-wed" value="Wed"> Wed</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;"><input type="checkbox" id="day-thu" value="Thu"> Thu</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;"><input type="checkbox" id="day-fri" value="Fri"> Fri</label>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Pickup Time Window</label>
+            <input type="text" id="f-pickup-time" placeholder="e.g. 7:30–8:00 AM">
+          </div>
+          <div class="form-group">
+            <label>Dropoff Time (approx)</label>
+            <input type="text" id="f-dropoff-time" placeholder="e.g. 5:00 PM">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Pickup Order / Route Note</label>
+          <input type="text" id="f-route-note" placeholder="e.g. Stop 3 on Brooklyn route">
+        </div>
+      </div>
+
+      <!-- MEMBERSHIP -->
+      <div class="form-section">
+        <div class="form-section-title">💳 Membership</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tier</label>
+            <select id="f-tier">
+              <option value="">— Select —</option>
+              <option value="Group $150">Group – $150/mo</option>
+              <option value="Group $175">Group – $175/mo</option>
+              <option value="Group $200">Group – $200/mo</option>
+              <option value="Duo">Duo – $300/mo</option>
+              <option value="Solo">Solo – $450/mo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="f-status">
+              <option value="Active">Active</option>
+              <option value="Pending">Pending</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" id="f-start-date">
+          </div>
+          <div class="form-group">
+            <label>Renewal Date</label>
+            <input type="date" id="f-renewal">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Payment Notes</label>
+          <input type="text" id="f-payment" placeholder="e.g. Venmo @name, auto-pay">
+        </div>
+      </div>
+
+      <!-- DOG HEALTH / TRAIL NOTES -->
+      <div class="form-section">
+        <div class="form-section-title">🏥 Health & Trail Notes</div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Vet Name & Phone</label>
+          <input type="text" id="f-vet" placeholder="Park Slope Vet, (718) 555-0000">
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Vaccinations Current?</label>
+          <select id="f-vacc">
+            <option value="">—</option>
+            <option>Yes – all current</option>
+            <option>Partial – note below</option>
+            <option>Unknown</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Allergies / Meds</label>
+            <textarea id="f-allergies" placeholder="Any allergies, medications, or supplements…"></textarea>
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:11px;font-weight:600;letter-spacing:0.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">Behavioral Flags</label>
+          <div class="checkbox-row"><input type="checkbox" id="b-reactive"><label for="b-reactive">Leash reactive</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="b-dog-selective"><label for="b-dog-selective">Dog selective</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="b-resource"><label for="b-resource">Resource guards</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="b-anxiety"><label for="b-anxiety">Separation anxiety</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="b-recall"><label for="b-recall">Recall needs work</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="b-water"><label for="b-water">Loves water / swimmer</label></div>
+        </div>
+        <div class="form-group">
+          <label>General Notes</label>
+          <textarea id="f-notes" placeholder="Trail performance, personality, things to remember…"></textarea>
+        </div>
+      </div>
+
+      <button class="btn-save" onclick="saveClient()">Save Client</button>
+      <button class="btn-delete" id="delete-btn" onclick="deleteClient()" style="display:none;">Remove Client</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ VIEW DETAIL MODAL ═══ -->
+<div class="modal-overlay" id="view-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="view-title">Client</div>
+      <button class="modal-close" onclick="closeModal('view-modal')">✕</button>
+    </div>
+    <div class="form-body" id="view-body"></div>
+  </div>
+</div>
+
+<script>
+// ── Google Apps Script backend ──
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtfJaqzlyr11pYpCotY5h_j1l4mZReVS5oUyFd4KUdcVCX45All6sLVYlQbEqiYXicEQ/exec';
+
+// ── Checked state stays local (per-device, per-day) ──
+const CHECKED_KEY = 'ctc_checked_v1';
+function loadChecked() {
+  try { return JSON.parse(localStorage.getItem(CHECKED_KEY)) || {}; } catch { return {}; }
+}
+function saveChecked(obj) { localStorage.setItem(CHECKED_KEY, JSON.stringify(obj)); }
+
+let clients = [];
+let editingId = null;
+let checkedToday = loadChecked();
+let selectedDay = ['Mon','Tue','Wed','Thu','Fri'][new Date().getDay() - 1] || 'Mon';
+
+// ── Sync indicator ──
+function setSyncing(on, msg) {
+  const bar = document.getElementById('sync-bar');
+  if (bar) { bar.textContent = msg || ''; bar.style.display = on ? 'block' : 'none'; }
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.opacity = '1'; t.style.transform = 'translateY(0)';
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; }, 2800);
+}
+
+// ── Fetch clients from Google Sheet ──
+async function fetchClients() {
+  setSyncing(true, '☁️  Loading from Google Sheets…');
+  try {
+    const res = await fetch(GAS_URL + '?action=getClients');
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      clients = data.filter(c => c.dogName);
+      await mergeIntake();
+    }
+  } catch(e) {
+    setSyncing(false);
+    showToast('⚠️ Could not reach Google Sheets.');
+    return;
+  }
+  setSyncing(false);
+  renderClients(); renderToday(); renderStats();
+}
+
+// ── Pull intake form rows and auto-import new ones ──
+async function mergeIntake() {
+  try {
+    const res = await fetch(GAS_URL + '?action=getIntake');
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return;
+    for (const row of rows) {
+      const dogName = (row["Dog's Name"] || '').trim();
+      const owner   = (row["Owner Name"]  || '').trim();
+      if (!dogName || !owner) continue;
+      const exists = clients.find(c =>
+        (c.dogName||'').toLowerCase() === dogName.toLowerCase() &&
+        (c.owner||'').toLowerCase()   === owner.toLowerCase()
+      );
+      if (!exists) {
+        const nc = {
+          id: 'i' + Date.now() + Math.random().toString(36).slice(2,6),
+          dogName, owner,
+          breed:'', age:'',
+          sex: row["Spayed/Neutered"] === 'Yes' ? 'Neutered/Spayed' : '',
+          size:'', color:'',
+          phone:   row["Phone Number"] || '',
+          email:   row["Email Address"] || '',
+          emergName:  row["Emergency Contact Name"]  || '',
+          emergPhone: row["Emergency Contact Phone"] || '',
+          address: row["Address"] || '',
+          pickupNote:'', dropoffNote:'',
+          days:[], pickupTime:'', dropoffTime:'', routeNote:'',
+          tier:'', status:'Pending',
+          startDate:'', renewal:'', payment:'',
+          vet:      row["Vet Phone"] || '',
+          vacc:     'Yes – all current',
+          allergies: row["Allergies or dietary restrictions"] || '',
+          reactive:false, dogSelective:false, resource:false,
+          anxiety:false, recall:false, water:false,
+          notes: 'Auto-imported from intake. Health notes: ' + (row["Current medications or health issues"] || 'None')
+        };
+        clients.push(nc);
+        await pushClient(nc, true);
+      }
+    }
+  } catch(e) { console.error('Intake merge:', e); }
+}
+
+// ── Push save to Google Sheet ──
+async function pushClient(client, silent) {
+  if (!silent) setSyncing(true, '💾  Saving to Google Sheets…');
+  try {
+    await fetch(GAS_URL, {
+      method:'POST',
+      body: JSON.stringify({ action:'saveClient', client })
+    });
+    if (!silent) showToast('✅  Saved!');
+  } catch(e) {
+    showToast('⚠️ Save failed. Check connection.');
+  }
+  if (!silent) setSyncing(false);
+}
+
+// ── Push delete to Google Sheet ──
+async function pushDelete(id) {
+  setSyncing(true, '🗑️  Removing…');
+  try {
+    await fetch(GAS_URL, {
+      method:'POST',
+      body: JSON.stringify({ action:'deleteClient', id })
+    });
+    showToast('🗑️  Client removed.');
+  } catch(e) { showToast('⚠️ Delete failed.'); }
+  setSyncing(false);
+}
+
+// ── Tabs ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['clients','today','stats'][i] === tab);
+  });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'today') renderToday();
+  if (tab === 'stats') renderStats();
+}
+
+// ── Render client list ──
+function renderClients() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  const list = document.getElementById('client-list');
+  const filtered = clients.filter(c =>
+    (c.dogName||'').toLowerCase().includes(q) || (c.owner||'').toLowerCase().includes(q)
+  );
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="emoji">🐾</div><p>No clients found</p></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c => {
+    const tierClass = c.tier?.startsWith('Solo') ? 'solo' : c.tier?.startsWith('Duo') ? 'duo' : '';
+    const tierShort = c.tier?.startsWith('Group') ? 'Group' : c.tier?.startsWith('Duo') ? 'Duo' : c.tier?.startsWith('Solo') ? 'Solo' : c.tier || '—';
+    const statusDot = c.status === 'Active' ? 'active' : c.status === 'Pending' ? 'pending' : 'inactive';
+    const flags = [];
+    if (c.reactive) flags.push('Reactive');
+    if (c.dogSelective) flags.push('Dog-selective');
+    if (c.recall) flags.push('Recall WIP');
+    return `
+      <div class="client-card" onclick="viewClient('${c.id}')">
+        <div class="card-top">
+          <div class="card-names">
+            <div class="dog-name">${c.dogName}</div>
+            <div class="owner-name">${c.owner}${c.breed ? ' · ' + c.breed : ''}</div>
+          </div>
+          <div class="tier-badge ${tierClass}">${tierShort}</div>
+        </div>
+        <div class="card-footer">
+          <div class="card-tag"><span class="dot ${statusDot}"></span>${c.status || 'Unknown'}</div>
+          ${c.days?.length ? `<div class="card-tag"><span class="dot"></span>${c.days.join(', ')}</div>` : ''}
+          ${flags.length ? `<div class="card-tag"><span class="dot" style="background:var(--orange)"></span>${flags.join(', ')}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── View client detail ──
+function viewClient(id) {
+  const c = clients.find(x => x.id === id);
+  if (!c) return;
+  const flags = ['reactive','dogSelective','resource','anxiety','recall','water'];
+  const flagLabels = {'reactive':'Leash reactive','dogSelective':'Dog selective','resource':'Resource guards','anxiety':'Sep. anxiety','recall':'Recall WIP','water':'Loves water'};
+  const activeFlags = flags.filter(f => c[f]).map(f => flagLabels[f]);
+  document.getElementById('view-title').innerHTML = `${c.dogName} <span style="font-size:14px;color:var(--text-muted);font-family:DM Sans">/ ${c.owner}</span>`;
+  document.getElementById('view-body').innerHTML = `
+    <div class="quick-actions">
+      ${c.phone ? `<a class="qa-btn" href="tel:${c.phone}">📞 Call Owner</a>` : ''}
+      ${c.phone ? `<a class="qa-btn" href="sms:${c.phone}">💬 Text Owner</a>` : ''}
+      <button class="qa-btn" onclick="editClient('${c.id}')">✏️ Edit</button>
+      ${c.emergPhone ? `<a class="qa-btn" href="tel:${c.emergPhone}">🚨 Emergency</a>` : ''}
+    </div>
+    <div style="height:14px"></div>
+    <div class="detail-section">
+      <div class="detail-section-title">Dog Info</div>
+      <div class="detail-row"><span class="detail-label">Name</span><span class="detail-val">${c.dogName}</span></div>
+      <div class="detail-row"><span class="detail-label">Breed</span><span class="detail-val">${c.breed||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Age</span><span class="detail-val">${c.age||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Sex</span><span class="detail-val">${c.sex||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Size</span><span class="detail-val">${c.size||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Color</span><span class="detail-val">${c.color||'—'}</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Owner & Emergency</div>
+      <div class="detail-row"><span class="detail-label">Owner</span><span class="detail-val">${c.owner}</span></div>
+      <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-val">${c.phone||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${c.email||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Emergency</span><span class="detail-val">${c.emergName||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Emerg. Phone</span><span class="detail-val">${c.emergPhone||'—'}</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Pickup & Dropoff</div>
+      <div class="detail-row"><span class="detail-label">Address</span><span class="detail-val">${c.address||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Days</span><span class="detail-val">${c.days?.join(', ')||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Pickup Time</span><span class="detail-val">${c.pickupTime||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Dropoff Time</span><span class="detail-val">${c.dropoffTime||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Pickup Notes</span><span class="detail-val note">${c.pickupNote||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Dropoff Notes</span><span class="detail-val note">${c.dropoffNote||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Route</span><span class="detail-val">${c.routeNote||'—'}</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Membership</div>
+      <div class="detail-row"><span class="detail-label">Tier</span><span class="detail-val">${c.tier||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-val"><span class="status-dot" style="background:${c.status==='Active'?'#2ecc71':c.status==='Pending'?'var(--orange)':'#e74c3c'}"></span>${c.status||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Start</span><span class="detail-val">${c.startDate||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Renewal</span><span class="detail-val">${c.renewal||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Payment</span><span class="detail-val">${c.payment||'—'}</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Health & Trail Notes</div>
+      <div class="detail-row"><span class="detail-label">Vet</span><span class="detail-val">${c.vet||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Vaccinations</span><span class="detail-val">${c.vacc||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Allergies / Meds</span><span class="detail-val note">${c.allergies||'None'}</span></div>
+      ${activeFlags.length ? `<div class="detail-row"><span class="detail-label">Flags</span><span class="detail-val" style="color:var(--orange)">${activeFlags.join(', ')}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-label">Notes</span><span class="detail-val note">${c.notes||'—'}</span></div>
+    </div>
+  `;
+  openModal('view-modal');
+}
+
+function editClient(id) {
+  closeModal('view-modal');
+  setTimeout(() => openEditForm(id), 200);
+}
+
+// ── New client form ──
+function openNewClient() {
+  editingId = null;
+  document.getElementById('form-modal-title').textContent = 'New Client';
+  document.getElementById('delete-btn').style.display = 'none';
+  clearForm();
+  openModal('form-modal');
+}
+
+function openEditForm(id) {
+  const c = clients.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('form-modal-title').textContent = 'Edit – ' + c.dogName;
+  document.getElementById('delete-btn').style.display = 'block';
+  fillForm(c);
+  openModal('form-modal');
+}
+
+function clearForm() {
+  ['f-dog-name','f-breed','f-age','f-sex','f-size','f-color',
+   'f-owner','f-phone','f-email','f-emerg-name','f-emerg-phone',
+   'f-address','f-pickup-note','f-dropoff-note','f-pickup-time','f-dropoff-time','f-route-note',
+   'f-tier','f-status','f-start-date','f-renewal','f-payment',
+   'f-vet','f-vacc','f-allergies','f-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('f-status').value = 'Active';
+  ['day-mon','day-tue','day-wed','day-thu','day-fri',
+   'b-reactive','b-dog-selective','b-resource','b-anxiety','b-recall','b-water']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+}
+
+function fillForm(c) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('f-dog-name',c.dogName); set('f-breed',c.breed); set('f-age',c.age);
+  set('f-sex',c.sex); set('f-size',c.size); set('f-color',c.color);
+  set('f-owner',c.owner); set('f-phone',c.phone); set('f-email',c.email);
+  set('f-emerg-name',c.emergName); set('f-emerg-phone',c.emergPhone);
+  set('f-address',c.address); set('f-pickup-note',c.pickupNote);
+  set('f-dropoff-note',c.dropoffNote); set('f-pickup-time',c.pickupTime);
+  set('f-dropoff-time',c.dropoffTime); set('f-route-note',c.routeNote);
+  set('f-tier',c.tier); set('f-status',c.status);
+  set('f-start-date',c.startDate); set('f-renewal',c.renewal);
+  set('f-payment',c.payment); set('f-vet',c.vet); set('f-vacc',c.vacc);
+  set('f-allergies',c.allergies); set('f-notes',c.notes);
+  ['Mon','Tue','Wed','Thu','Fri'].forEach(d => {
+    const el = document.getElementById('day-' + d.toLowerCase());
+    if (el) el.checked = (c.days||[]).includes(d);
+  });
+  const bMap = {reactive:'b-reactive',dogSelective:'b-dog-selective',resource:'b-resource',
+                anxiety:'b-anxiety',recall:'b-recall',water:'b-water'};
+  Object.entries(bMap).forEach(([k,id]) => {
+    const el = document.getElementById(id); if (el) el.checked = !!c[k];
+  });
+}
+
+async function saveClient() {
+  const dogName = document.getElementById('f-dog-name').value.trim();
+  const owner   = document.getElementById('f-owner').value.trim();
+  if (!dogName || !owner) { alert('Dog name and owner name are required.'); return; }
+
+  const days = ['Mon','Tue','Wed','Thu','Fri'].filter(d =>
+    document.getElementById('day-' + d.toLowerCase())?.checked
+  );
+
+  const data = {
+    dogName, owner,
+    breed:   document.getElementById('f-breed').value.trim(),
+    age:     document.getElementById('f-age').value.trim(),
+    sex:     document.getElementById('f-sex').value,
+    size:    document.getElementById('f-size').value,
+    color:   document.getElementById('f-color').value.trim(),
+    phone:   document.getElementById('f-phone').value.trim(),
+    email:   document.getElementById('f-email').value.trim(),
+    emergName:  document.getElementById('f-emerg-name').value.trim(),
+    emergPhone: document.getElementById('f-emerg-phone').value.trim(),
+    address:     document.getElementById('f-address').value.trim(),
+    pickupNote:  document.getElementById('f-pickup-note').value.trim(),
+    dropoffNote: document.getElementById('f-dropoff-note').value.trim(),
+    days,
+    pickupTime:  document.getElementById('f-pickup-time').value.trim(),
+    dropoffTime: document.getElementById('f-dropoff-time').value.trim(),
+    routeNote:   document.getElementById('f-route-note').value.trim(),
+    tier:        document.getElementById('f-tier').value,
+    status:      document.getElementById('f-status').value,
+    startDate:   document.getElementById('f-start-date').value,
+    renewal:     document.getElementById('f-renewal').value,
+    payment:     document.getElementById('f-payment').value.trim(),
+    vet:         document.getElementById('f-vet').value.trim(),
+    vacc:        document.getElementById('f-vacc').value,
+    allergies:   document.getElementById('f-allergies').value.trim(),
+    reactive:    document.getElementById('b-reactive').checked,
+    dogSelective:document.getElementById('b-dog-selective').checked,
+    resource:    document.getElementById('b-resource').checked,
+    anxiety:     document.getElementById('b-anxiety').checked,
+    recall:      document.getElementById('b-recall').checked,
+    water:       document.getElementById('b-water').checked,
+    notes:       document.getElementById('f-notes').value.trim(),
+  };
+
+  if (editingId) {
+    const idx = clients.findIndex(x => x.id === editingId);
+    if (idx >= 0) { data.id = editingId; clients[idx] = { ...clients[idx], ...data }; }
+  } else {
+    data.id = 'c' + Date.now();
+    clients.push(data);
+  }
+
+  closeModal('form-modal');
+  renderClients();
+  await pushClient(data);
+}
+
+async function deleteClient() {
+  if (!confirm('Remove this client? This cannot be undone.')) return;
+  clients = clients.filter(x => x.id !== editingId);
+  closeModal('form-modal');
+  renderClients();
+  await pushDelete(editingId);
+}
+
+// ── Today's Run ──
+function renderToday() {
+  const days = ['Mon','Tue','Wed','Thu','Fri'];
+  const today = days[new Date().getDay() - 1] || 'Mon';
+  if (!days.includes(selectedDay)) selectedDay = today;
+  const dateStr = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('run-date-label').textContent = dateStr;
+  document.getElementById('day-picker').innerHTML = days.map(d =>
+    `<button class="run-day-btn ${d===selectedDay?'active':''}" onclick="selectDay('${d}')">${d}</button>`
+  ).join('');
+  const dayClients = clients.filter(c => c.status==='Active' && (c.days||[]).includes(selectedDay));
+  dayClients.sort((a,b) => (a.routeNote||'').localeCompare(b.routeNote||''));
+  const runList = document.getElementById('run-list');
+  if (!dayClients.length) {
+    runList.innerHTML = `<div class="empty-state"><div class="emoji">🛤️</div><p>No active clients on ${selectedDay}</p></div>`;
+    return;
+  }
+  const todayKey = new Date().toDateString() + '_' + selectedDay;
+  runList.innerHTML = dayClients.map((c,i) => {
+    const checkKey = todayKey + '_' + c.id;
+    const isChecked = checkedToday[checkKey];
+    const flags = [];
+    if (c.reactive) flags.push('⚠️ Reactive');
+    if (c.allergies && c.allergies !== 'None') flags.push('🚫 Allergy');
+    return `
+      <div class="run-item" onclick="viewClient('${c.id}')">
+        <div class="run-order">${i+1}</div>
+        <div class="run-info">
+          <div class="run-dog">${c.dogName} <span style="font-weight:400;color:var(--text-muted);font-size:13px;">/ ${c.owner}</span></div>
+          <div class="run-detail">${c.address||'No address'} · ${c.pickupTime||'No time set'}</div>
+          ${flags.length?`<div class="run-detail" style="color:var(--orange);margin-top:2px">${flags.join(' · ')}</div>`:''}
+          ${c.pickupNote?`<div class="run-detail" style="font-style:italic;margin-top:2px">${c.pickupNote}</div>`:''}
+        </div>
+        <button class="run-check ${isChecked?'checked':''}" onclick="toggleCheck(event,'${c.id}','${todayKey}')">
+          ${isChecked?'✓':''}
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function selectDay(d) { selectedDay = d; renderToday(); }
+
+function toggleCheck(e, id, todayKey) {
+  e.stopPropagation();
+  const checkKey = todayKey + '_' + id;
+  checkedToday[checkKey] = !checkedToday[checkKey];
+  saveChecked(checkedToday);
+  renderToday();
+}
+
+// ── Stats ──
+function renderStats() {
+  const total  = clients.length;
+  const active = clients.filter(c => c.status==='Active').length;
+  const revenue = clients.filter(c => c.status==='Active').reduce((sum,c) => {
+    if (!c.tier) return sum;
+    if (c.tier.includes('450')) return sum+450;
+    if (c.tier.includes('300')) return sum+300;
+    if (c.tier.includes('200')) return sum+200;
+    if (c.tier.includes('175')) return sum+175;
+    if (c.tier.includes('150')) return sum+150;
+    return sum;
+  }, 0);
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total Clients</div></div>
+    <div class="stat-card"><div class="stat-num">${active}</div><div class="stat-label">Active</div></div>
+    <div class="stat-card"><div class="stat-num">$${revenue.toLocaleString()}</div><div class="stat-label">Monthly Revenue</div></div>
+    <div class="stat-card"><div class="stat-num">${clients.filter(c=>c.status==='Pending').length}</div><div class="stat-label">Pending</div></div>
+  `;
+  const tiers = {};
+  clients.filter(c=>c.status==='Active').forEach(c => {
+    const t = c.tier||'Unknown'; tiers[t] = (tiers[t]||0) + 1;
+  });
+  document.getElementById('tier-breakdown').innerHTML = Object.entries(tiers).map(([t,n]) =>
+    `<div class="detail-row"><span class="detail-label">${t}</span><span class="detail-val">${n} dog${n>1?'s':''}</span></div>`
+  ).join('') || '<div style="color:var(--text-muted);font-size:13px;">No active clients</div>';
+  const now = new Date(), soon = new Date(now.getTime() + 30*24*60*60*1000);
+  const renewing = clients.filter(c => {
+    if (!c.renewal) return false;
+    const d = new Date(c.renewal); return d >= now && d <= soon;
+  });
+  document.getElementById('renewals-list').innerHTML = renewing.length
+    ? renewing.map(c=>`<div class="detail-row"><span class="detail-label">${c.dogName}</span><span class="detail-val">${c.renewal}</span></div>`).join('')
+    : '<div style="color:var(--text-muted);font-size:13px;">No renewals in the next 30 days 🎉</div>';
+}
+
+// ── Modal helpers ──
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target===el) closeModal(el.id); });
+});
+
+// ── Init: load from Google Sheets on open ──
+fetchClients();
+</script>
+</body>
+</html>
